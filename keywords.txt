@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For SimpleTaskScheduler
+#######################################
+
+#######################################
+# Class (KEYWORD1)
+#######################################
+
+SimpleTaskScheduler	KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+# SimpleTaskScheduler Class
+addTask	KEYWORD2
+loop	KEYWORD2
+disableTask	KEYWORD2
+enableTask	KEYWORD2
+callTask	KEYWORD2
+changeTaskPeriod	KEYWORD2
+
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+TS_MILLIS	LITERAL1
+TS_MICROS	LITERAL1
+
