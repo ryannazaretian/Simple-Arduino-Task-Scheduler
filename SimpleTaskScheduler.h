@@ -28,30 +28,38 @@
 #define TS_MILLIS 0
 #define TS_MICROS 1
 
+#define ONE_SHOT false
+#define REPEATING true
+
 //provide a typedef for a void function pointer
 typedef void (*FuncPtr)(void);
 
-// This is a task object, which includes everythin the SimpleTaskScheduler needs to know about a specific task.
+// This is a task object, which includes everything the SimpleTaskScheduler needs to know about a specific task.
 typedef struct {
   FuncPtr fptr_callback; // Function pointer to the callback
   bool b_enabled; // Whether or not the task is enabled
   unsigned long ul_period; // The period, in milliseconds 
   unsigned long ul_timer_start;
+  bool b_autoreset;
 } TaskObject;
+
 
 class SimpleTaskScheduler {
   public:
     SimpleTaskScheduler(uint8_t, uint8_t);
-    uint8_t addTask(FuncPtr, uint16_t, bool);
+    uint8_t addTask(FuncPtr, uint16_t, bool, bool);
+
     void loop(void);
     void disableTask(uint8_t);
     void enableTask(uint8_t, bool);
+    bool isEnabled(uint8_t);
     void callTask(uint8_t);
     void changeTaskPeriod(uint8_t, unsigned long);
 
   private:
       TaskObject *st_tasks;
       uint8_t u8_numOfTasks;
+
       uint8_t u8_timerType;
       
       void resetTimer(uint8_t);
@@ -89,7 +97,7 @@ SimpleTaskScheduler::SimpleTaskScheduler(uint8_t u8_maxNumOfTasks, uint8_t u8_ti
   this->u8_timerType = u8_timerType;
 }
 
-uint8_t SimpleTaskScheduler::addTask(FuncPtr fptr_callback, uint16_t ul_period, bool b_enable) {
+uint8_t SimpleTaskScheduler::addTask(FuncPtr fptr_callback, uint16_t ul_period, bool b_enable, bool b_autoreset) {
   /* Function: addTasks
    *  Description: Adds a task to the task schedler. 
    * 
@@ -111,6 +119,7 @@ uint8_t SimpleTaskScheduler::addTask(FuncPtr fptr_callback, uint16_t ul_period, 
   this->st_tasks[u8_taskId].ul_period = ul_period;
   this->st_tasks[u8_taskId].b_enabled = b_enable;
   this->st_tasks[u8_taskId].ul_timer_start = 0;
+  this->st_tasks[u8_taskId].b_autoreset = b_autoreset;
   return u8_taskId;
 }
 
@@ -152,6 +161,16 @@ void SimpleTaskScheduler::enableTask(uint8_t u8_taskId, bool b_trigger_now) {
   }
 }
 
+bool SimpleTaskScheduler::isEnabled(uint8_t u8_taskId){
+	/* Public Function: isEnabled
+	 * Description: Returns true if the given unique task ID is enabled.
+	 *
+	 *  Arguments:
+     *    u8_taskId - The unique task ID of the task you want to check.
+     */ 
+	return this->st_tasks[u8_taskId].b_enabled;
+}
+
 void SimpleTaskScheduler::callTask(uint8_t u8_taskId) {
   /* Function: callTask
    *  Description: Calls the task by the given unique task ID and resets its timer
@@ -159,7 +178,10 @@ void SimpleTaskScheduler::callTask(uint8_t u8_taskId) {
    *  Arguments:
    *    u8_taskId - The unique task ID of the task you want to call.
    */
-  this->resetTimer(u8_taskId);
+  if (this->st_tasks[u8_taskId].b_autoreset)
+  	this->resetTimer(u8_taskId);
+  else
+  	this->disableTask(u8_taskId);
   this->st_tasks[u8_taskId].fptr_callback();
 }
 
